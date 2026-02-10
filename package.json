@@ -1,7 +1,7 @@
 {
-  "name": "zotero-plugin-template",
+  "name": "zotero-paged-snapshots",
   "version": "0.1.0",
-  "description": "Plugin description",
+  "description": "Adds page buttons for navigating web snapshots.",
   "config": {
     "addonName": "Paged Snapshots",
     "addonID": "paged-snapshots@dylan.ac",
@@ -30,16 +30,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dawaltconley/zotero-plugin-template.git"
+    "url": "git+https://github.com/dawaltconley/zotero-paged-snapshots.git"
   },
   "keywords": [
     "zotero",
     "plugin"
   ],
   "bugs": {
-    "url": "https://github.com/dawaltconley/zotero-plugin-template/issues"
+    "url": "https://github.com/dawaltconley/zotero-paged-snapshots/issues"
   },
-  "homepage": "https://github.com/dawaltconley/zotero-plugin-template#readme",
+  "homepage": "https://github.com/dawaltconley/zotero-paged-snapshots#readme",
   "prettier": {
     "printWidth": 80,
     "singleQuote": true,
