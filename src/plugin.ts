@@ -1,4 +1,3 @@
-import pluginCss from './styles.scss';
 import { config, version as packageVersion } from '../package.json';
 
 export interface PluginOptions {
@@ -32,7 +31,6 @@ export class Plugin {
   }
 
   async startup(): Promise<void> {
-    this.addToAllWindows();
     Zotero.Reader.registerEventListener(
       'renderToolbar',
       this.onRenderToolbar,
@@ -42,33 +40,10 @@ export class Plugin {
   }
 
   shutdown(): void {
-    this.removeFromAllWindows();
     Zotero.Reader.unregisterEventListener(
       'renderToolbar',
       this.onRenderToolbar,
     );
-  }
-
-  addToWindow(window: _ZoteroTypes.MainWindow): void {
-    // this.addMenuItems(window);
-  }
-
-  addToAllWindows(): void {
-    Zotero.getMainWindows().forEach((win) => {
-      if (!win.ZoteroPane) return;
-      this.addToWindow(win);
-    });
-  }
-
-  removeFromWindow(window: _ZoteroTypes.MainWindow): void {
-    // this.removeMenuItems(window);
-  }
-
-  removeFromAllWindows(): void {
-    Zotero.getMainWindows().forEach((win) => {
-      if (!win.ZoteroPane) return;
-      this.removeFromWindow(win);
-    });
   }
 
   async handleExistingTabs() {
@@ -87,40 +62,6 @@ export class Plugin {
       this.attachButtonsToReader(reader);
     }
   };
-
-  #observerID?: string;
-  registerObserver() {
-    this.log('registering tab observer');
-    if (this.#observerID) {
-      throw new Error(`${this.id}: observer is already registered`);
-    }
-    this.#observerID = Zotero.Notifier.registerObserver(
-      {
-        notify: async (event, type, ids, extraData) => {
-          // @ts-expect-error zotero-types doesn't include 'load' in the event definition, but tabs have a load event
-          if ((event === 'add' || event === 'load') && type === 'tab') {
-            const tabIDs = ids.filter((id) => extraData[id].type === 'reader');
-            await Promise.all(
-              tabIDs.map(async (id) => {
-                const reader = Zotero.Reader.getByTabID(id.toString());
-                // await this.attachStylesToReader(reader);
-              }),
-            );
-          }
-        },
-      },
-      ['tab'],
-    );
-    this.log('registered observer: ' + this.#observerID);
-  }
-
-  unregisterObserver() {
-    if (this.#observerID) {
-      this.log('unregistering observer: ' + this.#observerID);
-      Zotero.Notifier.unregisterObserver(this.#observerID);
-      this.#observerID = undefined;
-    }
-  }
 
   #updatedTabs = new Set<string | number>();
   async attachButtonsToReader(
@@ -202,53 +143,6 @@ export class Plugin {
     button.appendChild(svg);
 
     return button;
-  }
-
-  addMenuItems(window: _ZoteroTypes.MainWindow): void {
-    const doc = window.document;
-    const menuId = `${config.addonRef}-menu-item`;
-    if (doc.getElementById(menuId)) {
-      this.log('toolbar menu already attached');
-      return;
-    }
-
-    window.MozXULElement.insertFTLIfNeeded(`${config.addonRef}-menu.ftl`);
-
-    const menuitem = doc.createXULElement('menuitem') as XULMenuItemElement;
-    menuitem.id = menuId;
-    menuitem.classList.add('menu-type-reader');
-    menuitem.setAttribute('type', 'checkbox');
-    menuitem.setAttribute('data-l10n-id', menuId);
-
-    menuitem.addEventListener('command', async (_e: CommandEvent) => {
-      const isChecked = menuitem.getAttribute('checked') === 'true';
-      this.#isActive = isChecked;
-    });
-
-    const viewMenu = doc.getElementById('menu_viewPopup');
-    const referenceNode =
-      viewMenu?.querySelector('menuseparator.menu-type-library') || null;
-    const inserted = viewMenu?.insertBefore(menuitem, referenceNode);
-
-    if (inserted) {
-      this.log(`successfully inserted menuitem: ${menuitem.id}`);
-      this.storeAddedElement(menuitem);
-    }
-  }
-
-  removeMenuItems(window: _ZoteroTypes.MainWindow): void {
-    const doc = window.document;
-    for (const id of this.#addedElementIDs) {
-      doc.getElementById(id)?.remove();
-    }
-  }
-
-  #addedElementIDs: string[] = [];
-  storeAddedElement(elem: Element) {
-    if (!elem.id) {
-      throw new Error('Element must have an id');
-    }
-    this.#addedElementIDs.push(elem.id);
   }
 
   log(msg: string) {
