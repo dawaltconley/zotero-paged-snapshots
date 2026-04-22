@@ -1,6 +1,6 @@
 {
   "name": "zotero-paged-snapshots",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Adds page buttons for navigating web snapshots.",
   "config": {
     "addonName": "Paged Snapshots",
