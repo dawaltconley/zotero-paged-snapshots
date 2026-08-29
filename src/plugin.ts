@@ -1,4 +1,5 @@
 import { config, version as packageVersion } from '../package.json';
+import { isSnapshotReader, isIFrame, waitForReader } from './utils';
 
 export interface PluginOptions {
   id: string;
@@ -70,13 +71,12 @@ export class Plugin {
     if (this.#updatedTabs.has(reader.tabID)) {
       return;
     }
-    await reader._waitForReader();
-    await reader._initPromise;
+    await waitForReader(reader);
     const doc = reader?._iframeWindow?.document;
     const iframe = doc?.querySelector<HTMLIFrameElement>(
       '.primary-view iframe',
     );
-    if (!doc || !iframe || !isIframe(iframe)) {
+    if (!doc || !iframe || !isIFrame(iframe)) {
       this.log(`couldn't attach styles; tab ${reader.tabID} not ready`);
       return;
     }
@@ -163,10 +163,3 @@ export class Plugin {
     });
   }
 }
-
-const isIframe = (e: Element): e is HTMLIFrameElement =>
-  e.tagName.toUpperCase() === 'IFRAME';
-
-const isSnapshotReader = (
-  r: _ZoteroTypes.ReaderInstance,
-): r is _ZoteroTypes.ReaderInstance<'snapshot'> => r.type === 'snapshot';
